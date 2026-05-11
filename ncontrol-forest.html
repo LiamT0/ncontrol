@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NControl — The Card That Keeps You Locked In</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #060D09;
+  --bg-2:        #0A1710;
+  --bg-3:        #0F2018;
+  --bg-card:     rgba(10, 23, 16, 0.82);
+  --text:        #B4CCBC;
+  --text-2:      #6A8C7A;
+  --text-3:      #3C5A48;
+  --green:       #52C47C;
+  --green-bright:#7EDBA0;
+  --green-dim:   #2A6A48;
+  --amber:       #C08A40;
+  --amber-bright:#E0AD60;
+  --border:      rgba(82, 196, 124, 0.10);
+  --border-lg:   rgba(82, 196, 124, 0.20);
+  --shadow:      0 4px 28px rgba(0,0,0,0.55);
+  --shadow-lg:   0 16px 60px rgba(0,0,0,0.65);
+  --radius:      20px;
+  --radius-sm:   13px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Sora', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── GRAIN OVERLAY ── */
+#grain {
+  position: fixed; inset: 0; z-index: 9998;
+  pointer-events: none;
+  opacity: 0.038;
+}
+
+/* ── CUSTOM CURSOR ── */
+#cursor {
+  position: fixed; z-index: 9999;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--amber-bright);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: transform 0.1s, width 0.25s, height 0.25s, opacity 0.25s;
+  box-shadow: 0 0 12px 4px rgba(224,173,96,0.5);
+  mix-blend-mode: screen;
+}
+#cursor.hovered { width: 20px; height: 20px; opacity: 0.7; }
+
+/* ── LANTERN ORB ── */
+#lantern {
+  position: fixed; z-index: 0;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle at center,
+    rgba(192, 138, 64, 0.22) 0%,
+    rgba(82, 196, 124, 0.10) 35%,
+    transparent 70%
+  );
+  filter: blur(60px);
+  transition: opacity 0.5s;
+}
+
+/* ── FIREFLIES ── */
+.firefly {
+  position: fixed; z-index: 1;
+  width: 3px; height: 3px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: var(--green-bright);
+  box-shadow: 0 0 8px 3px rgba(126, 219, 160, 0.6);
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 44px;
+  background: rgba(6, 13, 9, 0.80);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px; letter-spacing: -0.3px;
+  color: var(--text); text-decoration: none;
+}
+.nav-logo span { color: var(--green); }
+.nav-links { display: flex; gap: 32px; list-style: none; }
+.nav-links a {
+  font-size: 13px; font-weight: 500;
+  color: var(--text-2); text-decoration: none;
+  transition: color 0.2s; cursor: none;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  background: var(--green-dim) !important;
+  color: var(--green-bright) !important;
+  padding: 9px 20px; border-radius: 100px;
+  font-size: 13px !important; font-weight: 600 !important;
+  border: 1px solid var(--border-lg);
+  transition: all 0.22s; cursor: none;
+}
+.nav-cta:hover { background: rgba(42, 106, 72, 0.7) !important; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--amber);
+  color: #060D09;
+  padding: 14px 28px; border-radius: 100px;
+  font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600;
+  text-decoration: none; border: none; cursor: none;
+  transition: all 0.22s;
+  box-shadow: 0 0 24px rgba(192,138,64,0.3);
+}
+.btn-primary:hover {
+  background: var(--amber-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(192,138,64,0.45);
+}
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: var(--text);
+  padding: 14px 28px; border-radius: 100px;
+  font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 500;
+  text-decoration: none; border: 1.5px solid var(--border-lg); cursor: none;
+  transition: all 0.22s;
+}
+.btn-secondary:hover { border-color: rgba(82,196,124,0.35); color: var(--green-bright); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 130px 40px 80px;
+  text-align: center;
+  position: relative; overflow: hidden;
+}
+
+/* SVG Treeline layers */
+.trees-back {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  z-index: 2; pointer-events: none;
+  opacity: 0.85;
+  will-change: transform;
+}
+.trees-mid {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  z-index: 3; pointer-events: none;
+  opacity: 0.92;
+  will-change: transform;
+}
+.trees-front {
+  position: absolute; bottom: 0; left: -5%; right: -5%;
+  z-index: 4; pointer-events: none;
+  opacity: 1;
+  will-change: transform;
+}
+
+/* Mist layer */
+.hero-mist {
+  position: absolute; inset: 0; z-index: 5;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 55%,
+    rgba(10,23,16,0.5) 75%,
+    var(--bg) 100%
+  );
+}
+
+/* Rising graph trace */
+.hero-trace {
+  position: absolute; bottom: 180px; left: 0; right: 0;
+  z-index: 2; pointer-events: none; opacity: 0.18;
+}
+
+.hero-content {
+  position: relative; z-index: 10;
+  display: flex; flex-direction: column;
+  align-items: center;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(10,23,16,0.7);
+  border: 1px solid var(--border-lg);
+  border-radius: 100px; padding: 8px 18px;
+  font-size: 12px; font-weight: 500; color: var(--text-2);
+  margin-bottom: 32px;
+  backdrop-filter: blur(12px);
+  animation: fadeUp 1s ease both;
+}
+.badge-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulseDot 2.2s ease-in-out infinite;
+}
+
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(48px, 7.5vw, 92px);
+  line-height: 1.04; letter-spacing: -2.5px;
+  color: var(--text); max-width: 880px; margin-bottom: 24px;
+  animation: fadeUp 1s 0.1s ease both;
+}
+.hero h1 em { font-style: italic; color: var(--green-bright); }
+
+.hero-sub {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--text-2); max-width: 520px;
+  margin: 0 auto 40px; font-weight: 400; line-height: 1.8;
+  animation: fadeUp 1s 0.2s ease both;
+}
+.hero-ctas {
+  display: flex; gap: 12px; justify-content: center;
+  flex-wrap: wrap; margin-bottom: 70px;
+  animation: fadeUp 1s 0.3s ease both;
+}
+
+/* ── HERO PRODUCT UI ── */
+.hero-ui {
+  display: flex; align-items: flex-start; justify-content: center;
+  gap: 16px; width: 100%; max-width: 900px;
+  animation: fadeUp 1s 0.45s ease both;
+}
+
+/* Chat */
+.chat-widget {
+  flex: 1; max-width: 480px;
+  background: rgba(8, 18, 12, 0.88);
+  backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--border-lg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(82,196,124,0.1);
+  overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
+  will-change: transform;
+}
+.chat-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(82,196,124,0.04);
+}
+.chat-icon {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: var(--green-dim);
+  border: 1px solid var(--border-lg);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--green-bright); font-family: 'Instrument Serif', serif;
+  font-size: 14px; font-weight: 700; flex-shrink: 0;
+}
+.chat-header-info { flex: 1; }
+.chat-header-name { font-size: 12px; font-weight: 600; color: var(--text); }
+.chat-active {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--green); font-weight: 500;
+}
+.dot-green {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+.chat-tag {
+  font-size: 10px; font-weight: 500; color: var(--text-3);
+  background: var(--bg-3); padding: 3px 10px;
+  border-radius: 100px; border: 1px solid var(--border);
+}
+.chat-messages {
+  padding: 18px; display: flex; flex-direction: column; gap: 12px;
+}
+.msg-user {
+  align-self: flex-end;
+  background: var(--green-dim);
+  border: 1px solid var(--border-lg);
+  color: var(--green-bright);
+  padding: 10px 15px;
+  border-radius: 16px 16px 3px 16px;
+  font-size: 13px; font-weight: 500; max-width: 80%;
+}
+.msg-ai {
+  align-self: flex-start;
+  background: rgba(15,32,24,0.9);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px 15px;
+  border-radius: 3px 16px 16px 16px;
+  font-size: 12px; line-height: 1.55; max-width: 88%;
+}
+.msg-ai-title {
+  font-weight: 600; font-size: 12px; color: var(--green-bright);
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.ai-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; border-bottom: 1px solid rgba(82,196,124,0.07);
+  font-size: 11px;
+}
+.ai-row:last-of-type { border-bottom: none; }
+.ai-l { color: var(--text-2); }
+.ai-v { font-weight: 600; color: var(--text); }
+.ai-v.g { color: var(--green-bright); }
+.msg-ai-worth {
+  margin-top: 10px; padding: 11px;
+  background: linear-gradient(135deg, rgba(82,196,124,0.07), rgba(192,138,64,0.05));
+  border: 1px solid rgba(82,196,124,0.15);
+  border-radius: 10px; text-align: center;
+}
+.worth-lbl {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.7px; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 3px;
+}
+.worth-val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 24px; letter-spacing: -0.5px;
+  color: var(--green-bright);
+  text-shadow: 0 0 28px rgba(126,219,160,0.5);
+}
+.chat-footer {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.analyzing-bar {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-3); font-weight: 500;
+}
+.dot-amber {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+  animation: pulseDot 1.8s ease-in-out infinite;
+}
+
+/* Card column */
+.card-col {
+  width: 238px; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.card-visual {
+  background: linear-gradient(140deg, #0A1A10 0%, #162B1C 50%, #0A1810 100%);
+  border: 1px solid rgba(82,196,124,0.2);
+  border-radius: 16px; padding: 18px 20px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(82,196,124,0.15);
+  aspect-ratio: 16/10;
+  display: flex; flex-direction: column; justify-content: space-between;
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
+  will-change: transform;
+}
+.card-visual::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(130deg, rgba(82,196,124,0.07) 0%, transparent 55%);
+}
+.card-visual::after {
+  content: '';
+  position: absolute; top: -30px; right: -30px;
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(192,138,64,0.15) 0%, transparent 70%);
+}
+.card-chip {
+  width: 24px; height: 17px;
+  background: linear-gradient(135deg, #8B6520, #C8943A);
+  border-radius: 3px;
+}
+.card-name-text {
+  font-family: 'Instrument Serif', serif;
+  color: rgba(180,220,188,0.85);
+  font-size: 14px; letter-spacing: 0.3px;
+}
+.card-num {
+  font-size: 8px; letter-spacing: 3px;
+  color: rgba(82,196,124,0.35); font-weight: 500;
+  margin-top: 2px;
+}
+.locked-badge {
+  position: absolute; top: 11px; right: 11px;
+  background: rgba(82,196,124,0.15);
+  border: 1px solid rgba(82,196,124,0.3);
+  border-radius: 100px; padding: 3px 9px;
+  font-size: 8px; font-weight: 700;
+  color: var(--green-bright);
+  letter-spacing: 0.7px; text-transform: uppercase;
+  box-shadow: 0 0 12px rgba(82,196,124,0.2);
+}
+
+/* Glass cards */
+.glass-card {
+  background: rgba(8,18,12,0.85);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-lg);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  box-shadow: var(--shadow);
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
+  will-change: transform;
+}
+.srow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 5px 0; font-size: 11px;
+}
+.srow:not(:last-child) { border-bottom: 1px solid rgba(82,196,124,0.07); }
+.slabel { color: var(--text-2); }
+.sval { font-weight: 600; color: var(--text); }
+.pill-g {
+  background: rgba(82,196,124,0.12); color: var(--green-bright);
+  border: 1px solid rgba(82,196,124,0.25);
+  padding: 2px 8px; border-radius: 100px;
+  font-size: 9px; font-weight: 700;
+}
+.pill-a {
+  background: rgba(192,138,64,0.12); color: var(--amber-bright);
+  border: 1px solid rgba(192,138,64,0.25);
+  padding: 2px 8px; border-radius: 100px;
+  font-size: 9px; font-weight: 700;
+}
+.nw-card {
+  background: rgba(8,18,12,0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(82,196,124,0.18);
+  border-radius: var(--radius-sm); padding: 13px 15px;
+  box-shadow: 0 0 32px rgba(82,196,124,0.08), var(--shadow);
+  text-align: center;
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), box-shadow 0.4s;
+  will-change: transform;
+}
+.nw-lbl {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: 0.7px; text-transform: uppercase;
+  color: var(--text-3); margin-bottom: 3px;
+}
+.nw-val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 26px; letter-spacing: -0.8px;
+  color: var(--green-bright);
+  text-shadow: 0 0 32px rgba(126,219,160,0.55);
+  line-height: 1.1;
+}
+.nw-sub { font-size: 9px; color: var(--text-3); margin-top: 3px; }
+
+/* ── SECTION SHARED ── */
+.section-label {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 10px; font-weight: 600; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 16px;
+}
+.section-label::before {
+  content: ''; width: 18px; height: 1px; background: var(--green-dim);
+}
+h2.display {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(34px, 4.5vw, 58px);
+  line-height: 1.08; letter-spacing: -1.5px;
+  color: var(--text); margin-bottom: 16px;
+}
+h2.display em { font-style: italic; color: var(--green-bright); }
+.section-lead {
+  font-size: 17px; color: var(--text-2);
+  max-width: 560px; line-height: 1.8;
+  margin-bottom: 52px; font-weight: 400;
+}
+
+/* ── PROBLEM ── */
+.prob-wrap {
+  background: var(--bg-2); padding: 100px 0;
+  position: relative; overflow: hidden;
+}
+.prob-wrap::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--border-lg), transparent);
+}
+.prob-inner { max-width: 1080px; margin: 0 auto; padding: 0 44px; }
+.prob-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 18px; margin-top: 52px;
+}
+.p-card {
+  background: rgba(10,23,16,0.7);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 30px;
+  box-shadow: var(--shadow);
+  transition: transform 0.4s cubic-bezier(0.23,1,0.32,1), border-color 0.3s, box-shadow 0.4s;
+  cursor: none; will-change: transform;
+}
+.p-card:hover {
+  border-color: var(--border-lg);
+  box-shadow: 0 0 40px rgba(82,196,124,0.08), var(--shadow-lg);
+}
+.p-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(82,196,124,0.08);
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin-bottom: 18px;
+}
+.p-card h3 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 20px; margin-bottom: 10px; color: var(--text);
+}
+.p-card p { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+
+/* ── PHILOSOPHY ── */
+.phi-wrap {
+  padding: 120px 44px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.phi-inner { max-width: 820px; margin: 0 auto; }
+.phi-wrap h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(40px, 6vw, 76px);
+  letter-spacing: -2.5px; line-height: 1.04; margin-bottom: 0;
+}
+.phi-wrap h2.ac { color: var(--green-bright); font-style: italic; margin-bottom: 24px; }
+.phi-div {
+  width: 48px; height: 1.5px;
+  background: linear-gradient(90deg, var(--green-dim), var(--amber));
+  border-radius: 100px; margin: 32px auto;
+}
+.phi-body {
+  font-size: 17px; color: var(--text-2);
+  max-width: 560px; margin: 0 auto; line-height: 1.85;
+}
+.phi-note {
+  font-size: 14px; color: var(--text-3);
+  max-width: 440px; margin: 20px auto 0; font-style: italic; line-height: 1.7;
+}
+
+/* ── FLOW ── */
+.flow-wrap { background: var(--bg-2); padding: 100px 0; position: relative; }
+.flow-wrap::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--border-lg), transparent);
+}
+.flow-inner { max-width: 1080px; margin: 0 auto; padding: 0 44px; }
+.flow-grid {
+  display: grid; grid-template-columns: repeat(4,1fr);
+  gap: 32px; margin-top: 52px; position: relative;
+}
+.flow-grid::before {
+  content: ''; position: absolute;
+  top: 14px; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, var(--green-dim), transparent);
+}
+.flow-step { position: relative; }
+.step-num {
+  font-family: 'Instrument Serif', serif;
+  font-size: 11px; font-style: italic;
+  color: var(--text-3); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 8px;
+}
+.step-num::before {
+  content: ''; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--bg-2); border: 1.5px solid var(--green-dim);
+  flex-shrink: 0; position: relative; z-index: 1;
+}
+.flow-step:first-child .step-num::before {
+  background: var(--green-dim);
+  box-shadow: 0 0 12px rgba(82,196,124,0.4);
+  border-color: var(--green);
+}
+.step-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 26px; color: var(--text); margin-bottom: 8px;
+}
+.step-prompt {
+  display: inline-flex;
+  background: var(--green-dim); color: var(--green-bright);
+  border: 1px solid var(--border-lg);
+  padding: 5px 12px; border-radius: 100px;
+  font-size: 10px; font-weight: 500;
+  margin-bottom: 10px;
+}
+.step-desc { font-size: 13px; color: var(--text-2); line-height: 1.8; }
+
+/* ── TRUST ── */
+.trust-wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding: 100px 44px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+.trust-bullets { display: flex; flex-direction: column; gap: 13px; margin-top: 32px; }
+.t-bullet {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 14px; color: var(--text-2); line-height: 1.5;
+}
+.t-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(82,196,124,0.1);
+  border: 1px solid var(--border-lg);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.t-icon svg { width: 10px; height: 10px; }
+.trust-vis { display: flex; flex-direction: column; gap: 9px; }
+.ctrl-card {
+  background: rgba(8,18,12,0.8);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 18px;
+  box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: 13px;
+  transition: transform 0.22s, border-color 0.22s; cursor: none;
+}
+.ctrl-card:hover { transform: translateX(5px); border-color: var(--border-lg); }
+.ctrl-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.ctrl-info { flex: 1; }
+.ctrl-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.ctrl-sub { font-size: 10px; color: var(--text-3); }
+.ctrl-action { font-size: 11px; font-weight: 600; color: var(--green); cursor: none; white-space: nowrap; }
+
+/* ── MISSION ── */
+.mission-wrap {
+  position: relative; padding: 130px 44px;
+  text-align: center; overflow: hidden;
+}
+.mission-bg {
+  position: absolute; inset: 0; z-index: 0;
+  background: linear-gradient(180deg, var(--bg) 0%, #0A1F12 50%, #060D09 100%);
+}
+/* Atmospheric rings */
+.mission-rings {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.mring {
+  position: absolute; border-radius: 50%;
+  border: 1px solid rgba(82,196,124,0.06);
+}
+.mission-inner { max-width: 740px; margin: 0 auto; position: relative; z-index: 2; }
+.mission-wrap .section-label { color: var(--text-3); }
+.mission-wrap .section-label::before { background: var(--text-3); }
+.mission-wrap h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(36px, 5vw, 62px);
+  letter-spacing: -1.5px; line-height: 1.08;
+  color: var(--text); margin-bottom: 22px;
+}
+.mission-wrap h2 em { font-style: italic; color: var(--green-bright); }
+.mission-wrap p {
+  font-size: 17px; color: var(--text-2);
+  line-height: 1.85; margin-bottom: 48px;
+}
+
+/* ── BETA ── */
+.beta-wrap { padding: 100px 44px; text-align: center; }
+.email-row {
+  display: flex; gap: 10px; justify-content: center;
+  flex-wrap: wrap; max-width: 420px; margin: 0 auto;
+}
+.email-input {
+  flex: 1; min-width: 190px;
+  padding: 13px 20px; border-radius: 100px;
+  border: 1.5px solid var(--border-lg);
+  background: rgba(10,23,16,0.8); font-family: 'Sora', sans-serif;
+  font-size: 13px; outline: none; color: var(--text);
+  transition: border-color 0.2s; cursor: none;
+}
+.email-input:focus { border-color: var(--green); }
+.fine-print { font-size: 11px; color: var(--text-3); margin-top: 14px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--bg-2); padding: 36px 44px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--border);
+}
+.f-logo { font-family: 'Instrument Serif', serif; font-size: 19px; color: var(--text); }
+.f-logo span { color: var(--green); }
+.f-copy { font-size: 12px; color: var(--text-3); }
+.f-links { display: flex; gap: 20px; }
+.f-links a { font-size: 12px; color: var(--text-3); text-decoration: none; cursor: none; transition: color 0.2s; }
+.f-links a:hover { color: var(--text-2); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+@keyframes floatFly {
+  0%   { transform: translate(0, 0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  45%  { transform: translate(var(--dx), var(--dy)) scale(1.3); opacity: 0.9; }
+  55%  { opacity: 0.6; }
+  90%  { opacity: 0.8; }
+  100% { transform: translate(var(--dx2), var(--dy2)) scale(0.8); opacity: 0; }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50%       { opacity: 1; transform: scale(1.05); }
+}
+
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.75s ease, transform 0.75s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 860px) {
+  nav { padding: 14px 20px; }
+  .nav-links { display: none; }
+  .hero { padding: 100px 20px 60px; }
+  .hero h1 { font-size: 44px; letter-spacing: -1.5px; }
+  .hero-ui { flex-direction: column; align-items: center; }
+  .card-col { width: 100%; max-width: 340px; }
+  .prob-grid { grid-template-columns: 1fr; }
+  .flow-grid { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .flow-grid::before { display: none; }
+  .trust-wrap { grid-template-columns: 1fr; gap: 40px; padding: 70px 20px; }
+  .prob-inner, .flow-inner { padding: 0 20px; }
+  .mission-wrap, .beta-wrap { padding: 80px 20px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- GRAIN CANVAS -->
+<canvas id="grain"></canvas>
+
+<!-- CUSTOM CURSOR -->
+<div id="cursor"></div>
+
+<!-- LANTERN ORB -->
+<div id="lantern"></div>
+
+<!-- NAV -->
+<nav id="topNav">
+  <a href="#" class="nav-logo">N<span>Control</span></a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#trust">Security</a></li>
+    <li><a href="#mission">Mission</a></li>
+    <li><a href="#beta" class="nav-cta">Join beta</a></li>
+  </ul>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+
+  <!-- Tree silhouettes (back to front parallax) -->
+  <svg class="trees-back" id="treesBack" viewBox="0 0 1440 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+    <path fill="#050C08" d="M0,220 L0,160 L20,130 L40,90 L55,110 L60,70 L75,50 L90,70 L95,110 L110,130 L130,100 L150,70 L165,95 L170,60 L185,30 L200,60 L215,95 L230,70 L250,100 L270,130 L290,100 L310,65 L325,90 L330,50 L345,25 L360,50 L375,90 L390,65 L410,100 L430,70 L450,100 L470,130 L490,100 L510,70 L530,100 L550,130 L570,95 L590,65 L610,90 L620,55 L635,30 L650,55 L665,90 L680,65 L700,95 L720,70 L740,100 L760,130 L780,100 L800,70 L820,100 L840,130 L860,95 L880,65 L900,90 L915,55 L930,30 L945,55 L960,90 L975,65 L995,95 L1015,70 L1035,100 L1055,130 L1075,100 L1095,70 L1115,100 L1135,130 L1155,95 L1175,65 L1195,90 L1210,55 L1225,25 L1240,55 L1255,90 L1270,65 L1290,95 L1310,70 L1330,100 L1350,130 L1370,100 L1390,130 L1410,160 L1440,160 L1440,220 Z"/>
+  </svg>
+
+  <svg class="trees-mid" id="treesMid" viewBox="0 0 1440 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+    <path fill="#04090606" fill-opacity="0" d=""/>
+    <path fill="#060E09" d="M0,220 L0,180 L30,165 L50,140 L70,110 L85,135 L90,100 L105,75 L120,100 L135,135 L155,110 L175,80 L195,110 L215,140 L235,115 L255,85 L270,110 L280,75 L295,45 L310,75 L325,110 L345,85 L365,115 L385,85 L405,115 L425,140 L445,115 L465,85 L485,115 L505,140 L525,110 L545,80 L565,105 L575,70 L590,45 L605,70 L620,105 L640,80 L660,110 L680,80 L700,110 L720,140 L740,115 L760,85 L780,115 L800,140 L820,110 L840,80 L860,105 L870,70 L885,40 L900,70 L915,105 L935,80 L955,110 L975,80 L995,110 L1015,140 L1035,115 L1055,85 L1075,115 L1095,140 L1115,110 L1135,80 L1155,110 L1175,140 L1195,115 L1215,85 L1235,115 L1255,80 L1270,110 L1290,140 L1310,165 L1340,180 L1380,180 L1440,180 L1440,220 Z"/>
+  </svg>
+
+  <svg class="trees-front" id="treesFront" viewBox="0 0 1440 180" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+    <path fill="#060D09" d="M-20,180 L-20,145 L10,135 L35,115 L55,90 L70,115 L75,85 L88,62 L100,85 L112,115 L130,92 L148,68 L162,90 L167,62 L178,40 L190,62 L200,90 L215,68 L230,92 L248,68 L262,90 L278,115 L295,90 L312,65 L328,90 L344,68 L358,90 L375,115 L392,90 L408,65 L425,90 L442,68 L456,90 L474,115 L490,90 L508,65 L522,88 L530,62 L542,40 L554,62 L566,88 L582,65 L598,90 L614,65 L630,90 L648,115 L665,90 L682,65 L698,90 L714,68 L728,90 L746,115 L762,90 L778,65 L794,88 L802,62 L814,38 L826,62 L838,88 L854,65 L870,90 L886,65 L902,90 L920,115 L936,90 L952,65 L968,90 L984,68 L998,90 L1016,115 L1032,90 L1048,65 L1064,90 L1080,68 L1094,90 L1112,115 L1128,90 L1144,65 L1160,90 L1176,68 L1190,90 L1208,115 L1224,92 L1240,68 L1256,92 L1272,68 L1288,92 L1304,115 L1320,135 L1350,145 L1390,150 L1460,150 L1460,180 Z"/>
+  </svg>
+
+  <!-- Mist -->
+  <div class="hero-mist"></div>
+
+  <!-- Rising trace line -->
+  <svg class="hero-trace" viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 75 L180 62 L360 48 L540 34 L720 22 L900 12 L1080 5 L1260 2 L1440 0" stroke="url(#tGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <defs>
+      <linearGradient id="tGrad" x1="0" y1="0" x2="1" y2="0" gradientUnits="objectBoundingBox">
+        <stop offset="0%" stop-color="#52C47C" stop-opacity="0"/>
+        <stop offset="50%" stop-color="#52C47C" stop-opacity="0.8"/>
+        <stop offset="100%" stop-color="#C08A40" stop-opacity="0.6"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <div class="hero-content">
+    <div class="hero-badge">
+      <div class="badge-dot"></div>
+      Now accepting beta signups &nbsp;·&nbsp; 2,400+ on waitlist
+    </div>
+
+    <h1>The card that keeps you <em>locked&nbsp;in.</em></h1>
+    <p class="hero-sub">NControl uses AI to analyze your spending, apply your budget to your card, and protect your financial future before the money is gone.</p>
+
+    <div class="hero-ctas">
+      <a href="#beta" class="btn-primary">
+        Join the beta
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#how" class="btn-secondary">See how it works</a>
+    </div>
+
+    <!-- PRODUCT UI -->
+    <div class="hero-ui">
+      <div class="chat-widget tilt" data-max="8">
+        <div class="chat-header">
+          <div class="chat-icon">N</div>
+          <div class="chat-header-info">
+            <div class="chat-header-name">NControl AI</div>
+            <div class="chat-active"><div class="dot-green"></div>Active</div>
+          </div>
+          <div class="chat-tag">Financial Autopilot</div>
+        </div>
+        <div class="chat-messages">
+          <div class="msg-user">Make me rich.</div>
+          <div class="msg-ai">
+            <div class="msg-ai-title"><span>🌿</span> Financial Autopilot — Ready</div>
+            <div class="ai-row"><span class="ai-l">Monthly budget</span><span class="ai-v">$3,200 applied</span></div>
+            <div class="ai-row"><span class="ai-l">Spending leaks found</span><span class="ai-v">$847/mo saved</span></div>
+            <div class="ai-row"><span class="ai-l">Investment redirect</span><span class="ai-v g">+$510/mo</span></div>
+            <div class="ai-row"><span class="ai-l">Card protection</span><span class="ai-v">🔒 Locked In</span></div>
+            <div class="msg-ai-worth">
+              <div class="worth-lbl">Projected Net Worth · Jan 1, 2027</div>
+              <div class="worth-val" id="heroNW">$2,670,562</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-footer">
+          <div class="analyzing-bar"><div class="dot-amber"></div>Analyzing spending patterns…</div>
+        </div>
+      </div>
+
+      <div class="card-col">
+        <div class="card-visual tilt" data-max="10">
+          <div class="card-chip"></div>
+          <div>
+            <div class="card-name-text">NControl</div>
+            <div class="card-num">•••• &nbsp;•••• &nbsp;•••• &nbsp;4291</div>
+          </div>
+          <div class="locked-badge">Locked In</div>
+        </div>
+        <div class="glass-card tilt" data-max="6">
+          <div class="srow"><span class="slabel">Card Status</span><span class="pill-g">Locked In ✓</span></div>
+          <div class="srow"><span class="slabel">Budget</span><span class="pill-a">Auto-Applied</span></div>
+          <div class="srow"><span class="slabel">Impulse Protection</span><span class="sval">Active</span></div>
+          <div class="srow"><span class="slabel">Goal Date</span><span class="sval">Jan 1, 2027</span></div>
+        </div>
+        <div class="nw-card tilt" data-max="6">
+          <div class="nw-lbl">Projected Net Worth</div>
+          <div class="nw-val" id="nwDisplay">$2,670,562</div>
+          <div class="nw-sub">By Jan 1, 2027 &nbsp;·&nbsp; On track ↑</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROBLEM ══ -->
+<div class="prob-wrap">
+  <div class="prob-inner">
+    <div class="section-label">The Problem</div>
+    <h2 class="display reveal">Budgeting apps show you the damage <em>after</em> it happens.</h2>
+    <p class="section-lead reveal">Most finance apps track your spending. NControl is built to help stop the wrong spending before it happens.</p>
+    <div class="prob-grid">
+      <div class="p-card tilt reveal" data-max="7">
+        <div class="p-icon">📋</div>
+        <h3>Trackers are passive</h3>
+        <p>They show you where your money went — a week later, when it's already gone and the damage is done.</p>
+      </div>
+      <div class="p-card tilt reveal" data-max="7">
+        <div class="p-icon">🧠</div>
+        <h3>Willpower breaks</h3>
+        <p>People don't need more guilt. They need guardrails. Motivation fades. Systems don't.</p>
+      </div>
+      <div class="p-card tilt reveal" data-max="7">
+        <div class="p-icon">💳</div>
+        <h3>The swipe is the moment</h3>
+        <p>The decision happens at the card, not in a spreadsheet. That's exactly where NControl lives.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PHILOSOPHY ══ -->
+<div class="phi-wrap" id="how">
+  <div class="phi-inner">
+    <div class="section-label" style="justify-content:center;">Philosophy</div>
+    <h2 class="reveal" style="font-family:'Instrument Serif',serif;font-size:clamp(40px,6vw,76px);letter-spacing:-2.5px;line-height:1.04;color:var(--text);">AI can think.</h2>
+    <h2 class="ac reveal" style="font-family:'Instrument Serif',serif;font-size:clamp(40px,6vw,76px);letter-spacing:-2.5px;line-height:1.04;color:var(--green-bright);font-style:italic;margin-bottom:24px;">NControl lets it act.</h2>
+    <div class="phi-div"></div>
+    <p class="phi-body reveal">AI can analyze your finances, create a plan, and tell you what to do. But until now, it could not protect your money in the moment. NControl gives AI a real-world financial action layer — connected through your card.</p>
+    <p class="phi-note reveal">This is bigger than a budgeting app. This is the missing layer between AI intelligence and your real-world financial decisions.</p>
+  </div>
+</div>
+
+<!-- ══ FLOW ══ -->
+<div class="flow-wrap">
+  <div class="flow-inner">
+    <div class="section-label">How It Works</div>
+    <h2 class="display reveal">One message. One plan. <em>One card.</em></h2>
+    <div class="flow-grid">
+      <div class="flow-step reveal">
+        <div class="step-num">Step 01</div>
+        <div class="step-title">Ask</div>
+        <div class="step-prompt">"Make me rich."</div>
+        <p class="step-desc">Just tell NControl what you want. Your goals, timeline, life. It starts from there.</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="step-num">Step 02</div>
+        <div class="step-title">Analyze</div>
+        <p class="step-desc">NControl reviews your spending patterns, bills, habits, and goals — finding leaks you've missed.</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="step-num">Step 03</div>
+        <div class="step-title">Apply</div>
+        <p class="step-desc">Your personalized budget is applied directly to your card. No more guessing.</p>
+      </div>
+      <div class="flow-step reveal">
+        <div class="step-num">Step 04</div>
+        <div class="step-title">Protect</div>
+        <p class="step-desc">Your card keeps your future self protected from impulse spending before it happens.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRUST ══ -->
+<div id="trust">
+  <div class="trust-wrap">
+    <div>
+      <div class="section-label">Control</div>
+      <h2 class="display reveal">Autopilot, not loss of <em>control.</em></h2>
+      <p class="section-lead reveal" style="margin-bottom:0;">You're always in charge. NControl helps you set the rules, understand the plan, and protect yourself — on your terms.</p>
+      <div class="trust-bullets">
+        <div class="t-bullet reveal"><div class="t-icon"><svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg></div>You approve every major rule</div>
+        <div class="t-bullet reveal"><div class="t-icon"><svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg></div>You can pause or adjust limits anytime</div>
+        <div class="t-bullet reveal"><div class="t-icon"><svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg></div>Your goals stay visible at all times</div>
+        <div class="t-bullet reveal"><div class="t-icon"><svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg></div>Your money stays yours — always</div>
+        <div class="t-bullet reveal"><div class="t-icon"><svg viewBox="0 0 10 10" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 5l2.5 2.5 4.5-4.5"/></svg></div>Built around transparency and control</div>
+      </div>
+    </div>
+    <div class="trust-vis reveal">
+      <div class="ctrl-card">
+        <div class="ctrl-icon" style="background:rgba(82,196,124,0.1);">🛡️</div>
+        <div class="ctrl-info"><div class="ctrl-title">Impulse Protection</div><div class="ctrl-sub">Active · $200 daily limit</div></div>
+        <div class="ctrl-action">Edit</div>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-icon" style="background:rgba(192,138,64,0.1);">📊</div>
+        <div class="ctrl-info"><div class="ctrl-title">Dining Budget</div><div class="ctrl-sub">$320/mo · $187 remaining</div></div>
+        <div class="ctrl-action">Adjust</div>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-icon" style="background:rgba(126,219,160,0.08);">🎯</div>
+        <div class="ctrl-info"><div class="ctrl-title">Net Worth Goal</div><div class="ctrl-sub">$2.6M by Jan 2027 · On track</div></div>
+        <div class="ctrl-action">View</div>
+      </div>
+      <div class="ctrl-card" style="border-color:rgba(82,196,124,0.18);">
+        <div class="ctrl-icon" style="background:rgba(82,196,124,0.06);">⏸️</div>
+        <div class="ctrl-info"><div class="ctrl-title" style="color:var(--green);">Pause autopilot</div><div class="ctrl-sub">Resume any time · No penalty</div></div>
+        <div class="ctrl-action">Pause</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MISSION ══ -->
+<div class="mission-wrap" id="mission">
+  <div class="mission-bg"></div>
+  <div class="mission-rings">
+    <div class="mring" style="width:300px;height:300px;"></div>
+    <div class="mring" style="width:500px;height:500px;"></div>
+    <div class="mring" style="width:700px;height:700px;"></div>
+    <div class="mring" style="width:900px;height:900px;"></div>
+  </div>
+  <div class="mission-inner">
+    <div class="section-label">Mission</div>
+    <h2 class="reveal">The future of finance cannot only belong to <em>the rich.</em></h2>
+    <p class="reveal">Wealthy people have advisors, private banking, and systems that protect their money. Everyday people are left with apps, alerts, and willpower. NControl is built to give normal people a real financial operating system — free to start, simple to use, and powerful enough to change behavior.</p>
+    <a href="#beta" class="btn-primary reveal">
+      Join the beta
+      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</div>
+
+<!-- ══ BETA ══ -->
+<div class="beta-wrap" id="beta">
+  <div class="section-label" style="justify-content:center;">Beta Access</div>
+  <h2 class="display reveal" style="max-width:520px;margin:0 auto 16px;">Be first to get <em>locked in.</em></h2>
+  <p class="reveal" style="font-size:16px;color:var(--text-2);max-width:400px;margin:0 auto 32px;line-height:1.8;">Join 2,400+ people waiting to put AI in control of their finances. Free to start. Built for everyone.</p>
+  <div class="email-row reveal">
+    <input id="emailInput" class="email-input" type="email" placeholder="your@email.com">
+    <button class="btn-primary" id="betaBtn" onclick="handleBeta()">Join beta</button>
+  </div>
+  <p class="fine-print reveal">No credit card. No commitment. Just early access.</p>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo">N<span>Control</span></div>
+  <div class="f-copy">© 2025 NControl Inc. All rights reserved.</div>
+  <div class="f-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Security</a>
+  </div>
+</footer>
+
+<script>
+/* ── GRAIN ── */
+(function() {
+  const c = document.getElementById('grain');
+  c.style.cssText = 'position:fixed;inset:0;z-index:9998;pointer-events:none;opacity:0.04;';
+  const W = 256, H = 256;
+  c.width = W; c.height = H;
+  c.style.width = '100vw'; c.style.height = '100vh';
+  c.style.imageRendering = 'pixelated';
+  const ctx = c.getContext('2d');
+  const d = ctx.createImageData(W, H);
+  for (let i = 0; i < d.data.length; i += 4) {
+    const v = Math.random() * 255 | 0;
+    d.data[i] = d.data[i+1] = d.data[i+2] = v;
+    d.data[i+3] = 255;
+  }
+  ctx.putImageData(d, 0, 0);
+  // Animate grain by cycling opacity slightly
+  let t = 0;
+  function animateGrain() {
+    t += 0.02;
+    c.style.opacity = (0.035 + Math.sin(t) * 0.005).toString();
+    // Shift grain position for subtle movement
+    c.style.transform = `translate(${Math.random()*2-1}px,${Math.random()*2-1}px)`;
+    requestAnimationFrame(animateGrain);
+  }
+  animateGrain();
+})();
+
+/* ── CURSOR + LANTERN ── */
+const cursor = document.getElementById('cursor');
+const lantern = document.getElementById('lantern');
+let mx = window.innerWidth/2, my = window.innerHeight/2;
+let lx = mx, ly = my;
+let raf;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx + 'px';
+  cursor.style.top = my + 'px';
+});
+
+// Hover state for interactive elements
+document.querySelectorAll('a, button, input, .p-card, .ctrl-card').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hovered'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hovered'));
+});
+
+// Lantern lerp loop
+function lerpLantern() {
+  const speed = 0.065;
+  lx += (mx - lx) * speed;
+  ly += (my - ly) * speed;
+  lantern.style.left = lx + 'px';
+  lantern.style.top = ly + 'px';
+  // Shift lantern color slightly based on vertical position
+  const pct = ly / window.innerHeight;
+  const amberA = 0.18 + pct * 0.06;
+  const greenA = 0.08 + (1-pct) * 0.06;
+  lantern.style.background = `radial-gradient(circle at center, rgba(192,138,64,${amberA}) 0%, rgba(82,196,124,${greenA}) 35%, transparent 70%)`;
+  requestAnimationFrame(lerpLantern);
+}
+lerpLantern();
+
+/* ── FIREFLIES ── */
+(function() {
+  const container = document.body;
+  const flies = [];
+  const COUNT = 28;
+
+  for (let i = 0; i < COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'firefly';
+    const x = Math.random() * window.innerWidth;
+    const y = Math.random() * window.innerHeight;
+    const size = 2 + Math.random() * 2.5;
+    const delay = Math.random() * 12;
+    const dur = 8 + Math.random() * 12;
+    const hue = Math.random() > 0.3 ? '126,219,160' : '224,173,96';
+    el.style.cssText = `
+      left:${x}px; top:${y}px;
+      width:${size}px; height:${size}px;
+      background:rgba(${hue},0.9);
+      box-shadow:0 0 ${size*3}px ${size}px rgba(${hue},0.5);
+      animation:floatFly ${dur}s ${delay}s ease-in-out infinite;
+      --dx:${(Math.random()-0.5)*200}px;
+      --dy:${-(20+Math.random()*160)}px;
+      --dx2:${(Math.random()-0.5)*300}px;
+      --dy2:${-(40+Math.random()*200)}px;
+    `;
+    container.appendChild(el);
+    flies.push({ el, bx: x, by: y });
+  }
+
+  // Subtle cursor repulsion
+  let fmx = 0, fmy = 0;
+  document.addEventListener('mousemove', e => { fmx = e.clientX; fmy = e.clientY; });
+
+  function updateFlies() {
+    flies.forEach(f => {
+      const rect = f.el.getBoundingClientRect();
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top + rect.height/2;
+      const dx = cx - fmx, dy = cy - fmy;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 120) {
+        const force = (120 - dist) / 120;
+        const ox = (dx/dist) * force * 35;
+        const oy = (dy/dist) * force * 35;
+        f.el.style.transform = `translate(${ox}px, ${oy}px)`;
+        f.el.style.transition = 'transform 0.4s ease';
+      } else {
+        f.el.style.transform = '';
+        f.el.style.transition = 'transform 1.2s ease';
+      }
+    });
+    requestAnimationFrame(updateFlies);
+  }
+  updateFlies();
+})();
+
+/* ── 3D CARD TILT ── */
+document.querySelectorAll('.tilt').forEach(card => {
+  const maxDeg = parseFloat(card.dataset.max || 8);
+  let animFrame;
+  let targetRX = 0, targetRY = 0, currentRX = 0, currentRY = 0;
+  let shine = card.querySelector('.card-shine');
+  if (!shine) {
+    shine = document.createElement('div');
+    shine.style.cssText = `
+      position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+      background:radial-gradient(circle at 50% 50%, rgba(255,255,255,0.06) 0%, transparent 60%);
+      opacity:0;transition:opacity 0.3s;z-index:10;
+    `;
+    if (getComputedStyle(card).position === 'static') card.style.position = 'relative';
+    card.appendChild(shine);
+  }
+
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    const nx = (e.clientX - r.left) / r.width - 0.5;
+    const ny = (e.clientY - r.top) / r.height - 0.5;
+    targetRY = nx * maxDeg;
+    targetRX = -ny * maxDeg;
+    shine.style.opacity = '1';
+    shine.style.background = `radial-gradient(circle at ${(nx+0.5)*100}% ${(ny+0.5)*100}%, rgba(255,255,255,0.08) 0%, transparent 55%)`;
+  });
+  card.addEventListener('mouseleave', () => {
+    targetRX = 0; targetRY = 0;
+    shine.style.opacity = '0';
+  });
+
+  function loop() {
+    currentRX += (targetRX - currentRX) * 0.12;
+    currentRY += (targetRY - currentRY) * 0.12;
+    card.style.transform = `perspective(900px) rotateX(${currentRX}deg) rotateY(${currentRY}deg) translateZ(4px)`;
+    if (Math.abs(targetRX - currentRX) > 0.01 || Math.abs(targetRY - currentRY) > 0.01 || targetRX !== 0 || targetRY !== 0) {
+      animFrame = requestAnimationFrame(loop);
+    } else {
+      card.style.transform = '';
+    }
+  }
+  card.addEventListener('mouseenter', () => { cancelAnimationFrame(animFrame); loop(); });
+  card.addEventListener('mousemove', () => { cancelAnimationFrame(animFrame); loop(); });
+  card.addEventListener('mouseleave', () => { cancelAnimationFrame(animFrame); loop(); });
+});
+
+/* ── PARALLAX TREES ── */
+const treesBack  = document.getElementById('treesBack');
+const treesMid   = document.getElementById('treesMid');
+const treesFront = document.getElementById('treesFront');
+
+window.addEventListener('scroll', () => {
+  const sy = window.scrollY;
+  if (treesBack)  treesBack.style.transform  = `translateY(${sy * 0.12}px)`;
+  if (treesMid)   treesMid.style.transform   = `translateY(${sy * 0.06}px)`;
+  if (treesFront) treesFront.style.transform  = `translateY(${sy * 0.02}px)`;
+}, { passive: true });
+
+/* ── SCROLL REVEAL ── */
+const revealEls = document.querySelectorAll('.reveal');
+const revObs = new IntersectionObserver(entries => {
+  let delay = 0;
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), delay);
+      delay += 65;
+      revObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1 });
+revealEls.forEach(el => revObs.observe(el));
+
+/* ── COUNTER ── */
+function animCount(el, target, dur) {
+  const s = performance.now();
+  const fmt = n => '$' + Math.floor(n).toLocaleString();
+  const tick = ts => {
+    const p = Math.min((ts - s) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 4);
+    el.textContent = fmt(target * e);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+setTimeout(() => {
+  const heroEl = document.getElementById('heroNW');
+  if (heroEl) animCount(heroEl, 2670562, 2200);
+}, 900);
+
+let counted = false;
+const nwEl = document.getElementById('nwDisplay');
+const nwObs = new IntersectionObserver(entries => {
+  if (entries[0].isIntersecting && !counted) {
+    counted = true;
+    animCount(nwEl, 2670562, 2400);
+  }
+}, { threshold: 0.5 });
+if (nwEl) nwObs.observe(nwEl);
+
+/* ── NAV SCROLL ── */
+const nav = document.getElementById('topNav');
+window.addEventListener('scroll', () => {
+  nav.style.background = window.scrollY > 30
+    ? 'rgba(6,13,9,0.95)'
+    : 'rgba(6,13,9,0.80)';
+}, { passive: true });
+
+/* ── BETA SUBMIT ── */
+function handleBeta() {
+  const email = document.getElementById('emailInput').value.trim();
+  const btn = document.getElementById('betaBtn');
+  if (!email || !email.includes('@')) {
+    document.getElementById('emailInput').style.borderColor = '#FF453A';
+    setTimeout(() => document.getElementById('emailInput').style.borderColor = '', 1600);
+    return;
+  }
+  btn.textContent = "✓ You're in the forest now";
+  btn.style.background = 'var(--green)';
+  btn.style.color = '#060D09';
+  document.getElementById('emailInput').value = '';
+  setTimeout(() => {
+    btn.textContent = 'Join beta';
+    btn.style.background = '';
+    btn.style.color = '';
+  }, 3500);
+}
+</script>
+</body>
+</html>
